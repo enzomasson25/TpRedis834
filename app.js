@@ -4,7 +4,6 @@ const app = express()
 const port = 3000
 const User = require("./models/modelUser");
 const jwt = require("jsonwebtoken")
-const JWT_SECRET = require("./fichiers/secret")
 
 app.use(bodyParser.json())
 
@@ -15,17 +14,12 @@ app.post('/login', async (req, res) => {
 
 
     if (!user || !user.comparePassword2(req.body.password)) {
-        res.status(401).json({
-            message: 'email or password is incorrect'
-        })
+        res.send('Le mot de passe est incorrecte')
     }
 
     else {
-        const token = jwt.sign({ email: user.email, password: user.password }, JWT_SECRET, { expiresIn: '1 week' })
-        res.status(400).json({
-            token: token 
-
-        })
+        const token = jwt.sign({ email: user.email, password: user.password }, 'super secret string oulala', { expiresIn: '1 week' })
+        res.send(token)
     }
  
 })
@@ -43,7 +37,7 @@ app.post('/user', (req, res) => {
         if (err) throw err;
     });
 
-    res.send('Le user a été créé :)')
+    res.send('Le user est bien enregistrer :)')
 })
 
 app.get('/createUser', (req, res) => {
@@ -60,7 +54,7 @@ app.get('/createUser', (req, res) => {
         if (err) throw err;
     });
 
-    res.send('Le user a été créé :)')
+    res.send('Le user est bien enregistrer :)')
 })
 
 app.get('/testMdp', (req, res) => {
@@ -104,5 +98,5 @@ mongoose.connect(connStr, function (err) {
 
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.log('App listening at http://localhost:${port}')
 })
