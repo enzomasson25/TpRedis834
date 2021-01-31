@@ -38,7 +38,7 @@ app.post('/login', async (req, res) => {
  
 })
 
-app.post('/user', (req, res) => {
+app.post('/register', (req, res) => {
     var user = new User({
         name: req.body.name,
         firstname: req.body.firstname,
