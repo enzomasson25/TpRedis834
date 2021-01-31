@@ -20,7 +20,7 @@ app.get('/incrToken', (req, res) =>{
     
     try{
         const payload = jwt.verify(token, JWT_SECRET) 
-        //todo faire l'incrémentation sur redis
+        
         client.get(token, (err, result) => {
 
             if (result !== null && result >= 10) {
