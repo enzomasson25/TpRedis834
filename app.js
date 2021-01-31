@@ -4,9 +4,23 @@ const app = express()
 const port = 3000
 const User = require("./models/modelUser");
 const jwt = require("jsonwebtoken")
+const JWT_SECRET = 'super secret string oulala'
 
 app.use(bodyParser.json())
 
+
+app.get('/testToken', (req, res) =>{
+    const token = req.header('Authorization').replace('Bearer ', '')
+    
+    try{
+        const payload = jwt.verify(token, JWT_SECRET) 
+        console.log(payload._id)
+        res.send('Authorization fait avec succès')
+    } catch(error) {
+        console.error(error.message)
+        res.send('Vous n\'avez pas accès !')
+    }
+})
 
 app.post('/login', async (req, res) => {
     
@@ -18,7 +32,7 @@ app.post('/login', async (req, res) => {
     }
 
     else {
-        const token = jwt.sign({ email: user.email, password: user.password }, 'super secret string oulala', { expiresIn: '1 week' })
+        const token = jwt.sign({ email: user.email, password: user.password }, JWT_SECRET, { expiresIn: '1 week' })
         res.send(token)
     }
  
