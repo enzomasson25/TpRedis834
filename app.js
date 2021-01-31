@@ -5,8 +5,45 @@ const port = 3000
 const User = require("./models/modelUser");
 const jwt = require("jsonwebtoken")
 const JWT_SECRET = 'super secret string oulala'
+const redis = require("redis");
+const client = redis.createClient();
+
+client.on("error", function(error) {
+    console.error(error);
+  });
 
 app.use(bodyParser.json())
+
+
+app.get('/incrToken', (req, res) =>{
+    const token = req.header('Authorization').replace('Bearer ', '')
+    
+    try{
+        const payload = jwt.verify(token, JWT_SECRET) 
+        //todo faire l'incrémentation sur redis
+        client.get(token, (err, result) => {
+
+            if (result !== null && result >= 10) {
+                res.send('You are rate limited, wait a bit')
+            } else {
+                client.incr(token, (err, value) => {
+                    if (err) {
+                        console.error(err)
+                        res.send(StatusCodes.INTERNAL_SERVER_ERROR).json(err)
+                    }
+    
+                    // It is not the best algorithm but every 10 minutes, you'll be given 10 more shots
+                    if (value === 1) client.expire(token, 10)
+                    res.send('L\'incrémentation a bien été effectuée')
+                })
+            }
+        })
+
+    } catch(error) {
+        console.error(error.message)
+        res.send('Vous n\'avez pas accès !')
+    }
+})
 
 
 app.get('/testToken', (req, res) =>{
@@ -14,7 +51,6 @@ app.get('/testToken', (req, res) =>{
     
     try{
         const payload = jwt.verify(token, JWT_SECRET) 
-        console.log(payload._id)
         res.send('Authorization fait avec succès')
     } catch(error) {
         console.error(error.message)
@@ -33,6 +69,7 @@ app.post('/login', async (req, res) => {
 
     else {
         const token = jwt.sign({ email: user.email, password: user.password }, JWT_SECRET, { expiresIn: '1 week' })
+        client.set(token,0)
         res.send(token)
     }
  
